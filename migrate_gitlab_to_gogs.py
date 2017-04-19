@@ -37,7 +37,7 @@ gitlab_url = args.source_repo + '/api/v3'
 gogs_token = input(("\n\nPlease provide the gogs access token which we use to access \n"
                     "your account. This is NOT your password! Go to \n"
                     "/user/settings/applications\n"
-                    "and click on 'Neuen Token Erzeugen', and copy and paste the \n"
+                    "and click on 'Create new token', and copy and paste the \n"
                     "resulting token which is shown afterwards. It should look \n"
                     "like 3240823dfsaefwio328923490832a.\n\ngogs_token=").format(args.target_repo))
 assert len(gogs_token)>0, 'The gogs token cannot be empty!'
