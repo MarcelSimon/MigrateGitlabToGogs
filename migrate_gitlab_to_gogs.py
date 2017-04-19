@@ -2,7 +2,6 @@ import requests
 import json
 import subprocess
 import os
-from IPython.display import display, HTML
 
 import argparse
 
