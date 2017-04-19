@@ -36,18 +36,18 @@ gitlab_url = args.source_repo + '/api/v3'
 
 gogs_token = input(("\n\nPlease provide the gogs access token which we use to access \n"
                     "your account. This is NOT your password! Go to \n"
-                    args.target_repo + "/user/settings/applications\n"
+                    "/user/settings/applications\n"
                     "and click on 'Neuen Token Erzeugen', and copy and paste the \n"
                     "resulting token which is shown afterwards. It should look \n"
-                    "like 3240823dfsaefwio328923490832a.\n\ngogs_token="))
+                    "like 3240823dfsaefwio328923490832a.\n\ngogs_token=").format(args.target_repo))
 assert len(gogs_token)>0, 'The gogs token cannot be empty!'
 
 
 gitlab_token = input(("\n\nToken to access your GITLAB account. This is NOT your password! Got to \n"
-                     args.source_repo + "/profile/account \n"
+                    "{}/profile/account \n"
                     "and copy the value in section 'Private token'. It should \n"
                     "look like du8dfsJlfEWFJAFhs\n"
-                    "\ngitlab_token="))
+                    "\ngitlab_token=").format(args.source_repo))
 assert len(gitlab_token)>0, 'The gitlab token cannot be empty!'
 
 #tmp_dir = '/home/simon/tmp/gitlab_gogs_migration'
