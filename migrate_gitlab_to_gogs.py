@@ -19,6 +19,10 @@ parser.add_argument('--source_repo',
 parser.add_argument('--target_repo', 
                     help='URL to your gogs / gitea repo in the format http://mygogs.com/',
                     required=True)
+parser.add_argument('--no_confirm', 
+                    help='Skip user confirmation of each single step',
+                    action='store_true')
+
 args = parser.parse_args()
 
 assert args.add_to_private or args.add_to_organization is not None, 'Please set either add_to_private or provide a target oranization name!'
@@ -30,7 +34,9 @@ if args.add_to_private:
 else:
     print('to the organisation %s'%args.add_to_organization, end='')
 print(' as private repositories.')
-input('Hit any key to continue!')
+
+if not args.no_confirm:
+    input('Hit any key to continue!')
 
 gogs_url = args.target_repo + "/api/v1"
 gitlab_url = args.source_repo + '/api/v4'
@@ -90,8 +96,9 @@ print('\n\nFinished preparations. We are about to migrate the following projects
 
 print('\n'.join([p['path_with_namespace'] for p in filtered_projects]))
 
-if 'yes' != input('Do you want to continue? (please answer yes or no) '):
-    print('\nYou decided to cancel...')
+if not args.no_confirm:
+    if 'yes' != input('Do you want to continue? (please answer yes or no) '):
+        print('\nYou decided to cancel...')
 
 
 for i in range(len(filtered_projects)):
@@ -101,8 +108,10 @@ for i in range(len(filtered_projects)):
     dst_name = src_name.replace(' ','-')
 
     print('\n\nMigrating project %s to project %s now.'%(src_url,dst_name))
-    if 'yes' != input('Do you want to continue? (please answer yes or no) '):
-        print('\nYou decided to cancel...')
+
+    if not args.no_confirm:
+        if 'yes' != input('Do you want to continue? (please answer yes or no) '):
+            print('\nYou decided to cancel...')
 
     # Create repo 
     if args.add_to_private:
@@ -133,6 +142,7 @@ for i in range(len(filtered_projects)):
 
     print('\n\nFinished migration. New project URL is %s'%dst_info['html_url'])
     print('Please open the URL and check if everything is fine.')
-    input('Hit any key to continue!')
+    if not args.no_confirm:
+        input('Hit any key to continue!')
     
 print('\n\nEverything finished!\n')
