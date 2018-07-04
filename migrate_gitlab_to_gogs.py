@@ -126,7 +126,7 @@ for i in range(len(filtered_projects)):
         print('Could not create repo %s because of %s'%(src_name,json.loads(create_repo.text)['message']))
         if args.skip_existing:
             print('\nSkipped')
-        else
+        else:
             if 'yes' != input('Do you want to skip this repo and continue with the next? (please answer yes or no) '):
                 print('\nYou decided to cancel...')
                 exit(1)
