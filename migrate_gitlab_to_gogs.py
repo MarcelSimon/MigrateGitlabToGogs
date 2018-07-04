@@ -22,6 +22,9 @@ parser.add_argument('--target_repo',
 parser.add_argument('--no_confirm', 
                     help='Skip user confirmation of each single step',
                     action='store_true')
+parser.add_argument('--skip_existing', 
+                    help='Skip repositories that already exist on remote without asking the user',
+                    action='store_true')
 
 args = parser.parse_args()
 
@@ -121,9 +124,12 @@ for i in range(len(filtered_projects)):
                             data=dict(token=gogs_token, name=dst_name, private=True, description=src_description))
     if create_repo.status_code != 201:
         print('Could not create repo %s because of %s'%(src_name,json.loads(create_repo.text)['message']))
-        if 'yes' != input('Do you want to skip this repo and continue with the next? (please answer yes or no) '):
-            print('\nYou decided to cancel...')
-            exit(1)
+        if args.skip_existing:
+            print('\nSkipped')
+        else
+            if 'yes' != input('Do you want to skip this repo and continue with the next? (please answer yes or no) '):
+                print('\nYou decided to cancel...')
+                exit(1)
         continue
     
     dst_info = json.loads(create_repo.text)
