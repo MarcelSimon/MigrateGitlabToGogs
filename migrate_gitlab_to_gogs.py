@@ -35,20 +35,25 @@ input('Hit any key to continue!')
 gogs_url = args.target_repo + "/api/v1"
 gitlab_url = args.source_repo + '/api/v4'
 
-gogs_token = input(("\n\nPlease provide the gogs access token which we use to access \n"
-                    "your account. This is NOT your password! Go to \n"
-                    "/user/settings/applications\n"
-                    "and click on 'Create new token', and copy and paste the \n"
-                    "resulting token which is shown afterwards. It should look \n"
-                    "like 3240823dfsaefwio328923490832a.\n\ngogs_token=").format(args.target_repo))
+if 'gogs_token' in os.environ:
+    gogs_token=os.environ['gogs_token']
+else:
+    gogs_token = input(("\n\nPlease provide the gogs access token which we use to access \n"
+                        "your account. This is NOT your password! Go to \n"
+                        "/user/settings/applications\n"
+                        "and click on 'Create new token', and copy and paste the \n"
+                        "resulting token which is shown afterwards. It should look \n"
+                        "like 3240823dfsaefwio328923490832a.\n\ngogs_token=").format(args.target_repo))
 assert len(gogs_token)>0, 'The gogs token cannot be empty!'
 
-
-gitlab_token = input(("\n\nToken to access your GITLAB account. This is NOT your password! Got to \n"
-                    "{}/profile/account \n"
-                    "and copy the value in section 'Private token'. It should \n"
-                    "look like du8dfsJlfEWFJAFhs\n"
-                    "\ngitlab_token=").format(args.source_repo))
+if 'gitlab_token' in os.environ:
+    gitlab_token=os.environ['gitlab_token']
+else:
+    gitlab_token = input(("\n\nToken to access your GITLAB account. This is NOT your password! Got to \n"
+                        "{}/profile/account \n"
+                        "and copy the value in section 'Private token'. It should \n"
+                        "look like du8dfsJlfEWFJAFhs\n"
+                        "\ngitlab_token=").format(args.source_repo))
 assert len(gitlab_token)>0, 'The gitlab token cannot be empty!'
 
 #tmp_dir = '/home/simon/tmp/gitlab_gogs_migration'
