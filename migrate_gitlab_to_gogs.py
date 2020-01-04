@@ -31,7 +31,7 @@ print(' as private repositories.')
 input('Hit any key to continue!')
 
 gogs_url = args.target_repo + "/api/v1"
-gitlab_url = args.source_repo + '/api/v3'
+gitlab_url = args.source_repo + '/api/v4'
 
 gogs_token = input(("\n\nPlease provide the gogs access token which we use to access \n"
                     "your account. This is NOT your password! Go to \n"
