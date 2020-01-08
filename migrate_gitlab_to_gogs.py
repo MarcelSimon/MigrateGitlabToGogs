@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import requests
 import json
 import subprocess
@@ -17,6 +19,13 @@ parser.add_argument('--source_repo',
 parser.add_argument('--target_repo', 
                     help='URL to your gogs / gitea repo in the format http://mygogs.com/',
                     required=True)
+parser.add_argument('--no_confirm', 
+                    help='Skip user confirmation of each single step',
+                    action='store_true')
+parser.add_argument('--skip_existing', 
+                    help='Skip repositories that already exist on remote without asking the user',
+                    action='store_true')
+
 args = parser.parse_args()
 
 assert args.add_to_private or args.add_to_organization is not None, 'Please set either add_to_private or provide a target oranization name!'
@@ -28,25 +37,32 @@ if args.add_to_private:
 else:
     print('to the organisation %s'%args.add_to_organization, end='')
 print(' as private repositories.')
-input('Hit any key to continue!')
+
+if not args.no_confirm:
+    input('Hit any key to continue!')
 
 gogs_url = args.target_repo + "/api/v1"
-gitlab_url = args.source_repo + '/api/v3'
+gitlab_url = args.source_repo + '/api/v4'
 
-gogs_token = input(("\n\nPlease provide the gogs access token which we use to access \n"
-                    "your account. This is NOT your password! Go to \n"
-                    "/user/settings/applications\n"
-                    "and click on 'Create new token', and copy and paste the \n"
-                    "resulting token which is shown afterwards. It should look \n"
-                    "like 3240823dfsaefwio328923490832a.\n\ngogs_token=").format(args.target_repo))
+if 'gogs_token' in os.environ:
+    gogs_token=os.environ['gogs_token']
+else:
+    gogs_token = input(("\n\nPlease provide the gogs access token which we use to access \n"
+                        "your account. This is NOT your password! Go to \n"
+                        "/user/settings/applications\n"
+                        "and click on 'Create new token', and copy and paste the \n"
+                        "resulting token which is shown afterwards. It should look \n"
+                        "like 3240823dfsaefwio328923490832a.\n\ngogs_token=").format(args.target_repo))
 assert len(gogs_token)>0, 'The gogs token cannot be empty!'
 
-
-gitlab_token = input(("\n\nToken to access your GITLAB account. This is NOT your password! Got to \n"
-                    "{}/profile/account \n"
-                    "and copy the value in section 'Private token'. It should \n"
-                    "look like du8dfsJlfEWFJAFhs\n"
-                    "\ngitlab_token=").format(args.source_repo))
+if 'gitlab_token' in os.environ:
+    gitlab_token=os.environ['gitlab_token']
+else:
+    gitlab_token = input(("\n\nToken to access your GITLAB account. This is NOT your password! Got to \n"
+                        "{}/profile/account \n"
+                        "and copy the value in section 'Private token'. It should \n"
+                        "look like du8dfsJlfEWFJAFhs\n"
+                        "\ngitlab_token=").format(args.source_repo))
 assert len(gitlab_token)>0, 'The gitlab token cannot be empty!'
 
 #tmp_dir = '/home/simon/tmp/gitlab_gogs_migration'
@@ -83,8 +99,9 @@ print('\n\nFinished preparations. We are about to migrate the following projects
 
 print('\n'.join([p['path_with_namespace'] for p in filtered_projects]))
 
-if 'yes' != input('Do you want to continue? (please answer yes or no) '):
-    print('\nYou decided to cancel...')
+if not args.no_confirm:
+    if 'yes' != input('Do you want to continue? (please answer yes or no) '):
+        print('\nYou decided to cancel...')
 
 
 for i in range(len(filtered_projects)):
@@ -94,8 +111,10 @@ for i in range(len(filtered_projects)):
     dst_name = src_name.replace(' ','-')
 
     print('\n\nMigrating project %s to project %s now.'%(src_url,dst_name))
-    if 'yes' != input('Do you want to continue? (please answer yes or no) '):
-        print('\nYou decided to cancel...')
+
+    if not args.no_confirm:
+        if 'yes' != input('Do you want to continue? (please answer yes or no) '):
+            print('\nYou decided to cancel...')
 
     # Create repo 
     if args.add_to_private:
@@ -105,9 +124,12 @@ for i in range(len(filtered_projects)):
                             data=dict(token=gogs_token, name=dst_name, private=True, description=src_description))
     if create_repo.status_code != 201:
         print('Could not create repo %s because of %s'%(src_name,json.loads(create_repo.text)['message']))
-        if 'yes' != input('Do you want to skip this repo and continue with the next? (please answer yes or no) '):
-            print('\nYou decided to cancel...')
-            exit(1)
+        if args.skip_existing:
+            print('\nSkipped')
+        else:
+            if 'yes' != input('Do you want to skip this repo and continue with the next? (please answer yes or no) '):
+                print('\nYou decided to cancel...')
+                exit(1)
         continue
     
     dst_info = json.loads(create_repo.text)
@@ -116,12 +138,17 @@ for i in range(len(filtered_projects)):
     # Git pull and push
     subprocess.check_call(['git','clone','--bare',src_url])
     os.chdir(src_url.split('/')[-1])
-    subprocess.check_call(['git','push','--mirror',dst_url])
+    branches=subprocess.check_output(['git','branch','-a'])
+    if len(branches) == 0:
+        print('\n\nThis repository is empty - skipping push')
+    else:
+        subprocess.check_call(['git','push','--mirror',dst_url])
     os.chdir('..')
     subprocess.check_call(['rm','-rf',src_url.split('/')[-1]]) 
 
     print('\n\nFinished migration. New project URL is %s'%dst_info['html_url'])
     print('Please open the URL and check if everything is fine.')
-    input('Hit any key to continue!')
+    if not args.no_confirm:
+        input('Hit any key to continue!')
     
 print('\n\nEverything finished!\n')

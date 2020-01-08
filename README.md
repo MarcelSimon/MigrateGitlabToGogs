@@ -13,7 +13,7 @@ usage: migrate_gitlab_to_gogs.py [-h] --source_namespace SOURCE_NAMESPACE
                                  [--add_to_private]
                                  [--add_to_organization organization_name]
                                  --source_repo SOURCE_REPO --target_repo
-                                 TARGET_REPO
+                                 TARGET_REPO [--no_confirm]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -40,6 +40,7 @@ optional arguments:
   --target_repo TARGET_REPO
                         URL to your gogs / gitea repo in the format
                         http://mygogs.com/
+  --no_confirm          Skip user confirmation of each single step
 ```
 
 ## Requirements
