@@ -138,11 +138,13 @@ for i in range(len(filtered_projects)):
     # Git pull and push
     subprocess.check_call(['git','clone','--bare',src_url])
     os.chdir(src_url.split('/')[-1])
+    subprocess.check_call(['git','lfs','fetch','--all'])
     branches=subprocess.check_output(['git','branch','-a'])
     if len(branches) == 0:
         print('\n\nThis repository is empty - skipping push')
     else:
         subprocess.check_call(['git','push','--mirror',dst_url])
+        subprocess.check_call(['git','lfs','push','--all',dst_url])
     os.chdir('..')
     subprocess.check_call(['rm','-rf',src_url.split('/')[-1]]) 
 
